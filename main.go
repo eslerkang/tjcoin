@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-
-	"github.com/eslerkang/tjcoin/utils"
 )
 
 const port string =":4000"
 
 type URLDescription struct {
-	URL string
-	Method string
-	Description string
+	URL string `json:"url"`
+	Method string `json:"method"`
+	Description string `json:"description"`
+	Payload string `json:"payload,omitempty"`
 }
 
 func documentation(rw http.ResponseWriter, r *http.Request) {
@@ -24,11 +23,15 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			Method: "GET",
 			Description: "See Documentation",
 		},
+		{
+			URL: "/add",
+			Method: "POST",
+			Description: "Add Block",
+			Payload: "data:string",
+		},
 	}
-	b, err := json.Marshal(data)
-	utils.HandleError(err)
-	fmt.Printf("%s\n", b)
-	fmt.Fprintf(rw, "%s\n", b)
+	rw.Header().Add("Content-Type", "application/json")
+	json.NewEncoder(rw).Encode(data)
 }
 
 func main() {
