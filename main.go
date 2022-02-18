@@ -1,11 +1,8 @@
 package main
 
-import (
-	"github.com/eslerkang/tjcoin/explorer"
-	"github.com/eslerkang/tjcoin/rest"
-)
+import "github.com/eslerkang/tjcoin/cli"
+
 
 func main() {
-	go explorer.Start(3000)
-	rest.Start(4000)
+	cli.Start()
 }
