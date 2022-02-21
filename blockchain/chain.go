@@ -20,6 +20,10 @@ func (b *blockchain) persist() {
 	db.SaveInBucket(db.DATA_BUCKET, db.CHECKPOINT, utils.ToBytes(b))
 }
 
+func (b *blockchain) restore(data []byte) {
+	utils.FromBytes(b, data)
+}
+
 func (b *blockchain) AddBlock(data string) {
 	block := createBlock(data)
 	b.NewestHash = block.Hash
@@ -52,7 +56,7 @@ func BlockChain() *blockchain {
 				b.AddBlock("Genesis Block")
 			} else {
 				// restore b from bytes
-				utils.FromBytes(b, checkpoint)
+				b.restore(checkpoint)
 			}
 		})
 	}

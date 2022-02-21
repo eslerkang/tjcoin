@@ -20,6 +20,10 @@ func (b *Block) persist() {
 	db.SaveInBucket(db.BLOCK_BUCKET, b.Hash, utils.ToBytes(b))
 }
 
+func (b *Block) restore(data []byte) {
+	utils.FromBytes(b, data)
+}
+
 var ErrNotFound = errors.New("block not found")
 
 func FindBlock(hash string) (*Block, error) {
@@ -28,7 +32,7 @@ func FindBlock(hash string) (*Block, error) {
 		return nil, ErrNotFound
 	}
 	block := &Block{}
-	utils.FromBytes(block, blockByte)
+	block.restore(blockByte)
 	return block, nil
 }
 
