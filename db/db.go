@@ -1,16 +1,20 @@
 package db
 
 import (
+	"fmt"
+
 	"github.com/boltdb/bolt"
 	"github.com/eslerkang/tjcoin/utils"
 )
 
 var db *bolt.DB
 
+type Bucket string
+
 const (
 	dbName       = "blockchain.db"
-	databucket   = "data"
-	blocksBucket = "blocks"
+	Databucket   = Bucket("data")
+	BlocksBucket = Bucket("blocks")
 )
 
 func DB() *bolt.DB {
@@ -20,13 +24,23 @@ func DB() *bolt.DB {
 		utils.HandleError(err)
 		db = dbPointer
 		err = db.Update(func(t *bolt.Tx) error {
-			_, err := t.CreateBucketIfNotExists([]byte(databucket))
+			_, err := t.CreateBucketIfNotExists([]byte(Databucket))
 			utils.HandleError(err)
-			_, err = t.CreateBucketIfNotExists([]byte(blocksBucket))
+			_, err = t.CreateBucketIfNotExists([]byte(BlocksBucket))
 			utils.HandleError(err)
 			return nil
 		})
 		utils.HandleError(err)
 	}
 	return db
+}
+
+func SaveInBucket(bucketName Bucket, key string, data []byte) {
+	fmt.Printf("Saving %s\nData: %b\n", key, data)
+	err := DB().Update(func(t *bolt.Tx) error {
+		bucket := t.Bucket([]byte(bucketName))
+		err := bucket.Put([]byte(key), data)
+		return err
+	})
+	utils.HandleError(err)
 }

@@ -1,8 +1,11 @@
 package main
 
-import "github.com/eslerkang/tjcoin/cli"
+import (
+	"github.com/eslerkang/tjcoin/blockchain"
+)
 
 
 func main() {
-	cli.Start()
+	// cli.Start()
+	blockchain.BlockChain()
 }
