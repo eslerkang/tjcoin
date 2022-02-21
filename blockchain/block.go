@@ -2,6 +2,7 @@ package blockchain
 
 import (
 	"crypto/sha256"
+	"errors"
 	"fmt"
 
 	"github.com/eslerkang/tjcoin/db"
@@ -17,6 +18,18 @@ type Block struct {
 
 func (b *Block) persist() {
 	db.SaveInBucket(db.BLOCK_BUCKET, b.Hash, utils.ToBytes(b))
+}
+
+var ErrNotFound = errors.New("block not found")
+
+func FindBlock(hash string) (*Block, error) {
+	blockByte := db.Block(hash)
+	if blockByte == nil {
+		return nil, ErrNotFound
+	}
+	block := &Block{}
+	utils.FromBytes(block, blockByte)
+	return block, nil
 }
 
 func createBlock(data string) *Block {

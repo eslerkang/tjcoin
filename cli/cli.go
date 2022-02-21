@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime"
 
 	"github.com/eslerkang/tjcoin/explorer"
 	"github.com/eslerkang/tjcoin/rest"
@@ -14,7 +15,7 @@ func usage() {
 	fmt.Printf("Please use the following flags:\n\n")
 	fmt.Printf("-port:   Set the port of the server(default 4000)\n")
 	fmt.Printf("-mode:   Choose between 'html' and 'rest'(default 'rest')\n")
-	os.Exit(0)
+	runtime.Goexit()
 }
 
 func Start() {
@@ -22,7 +23,7 @@ func Start() {
 		usage()
 	}
 
-	port := flag.Int("port", 3000, "Set port of the server")
+	port := flag.Int("port", 4000, "Set port of the server")
 	mode := flag.String("mode", "rest", "Choose between 'html' and 'rest'")
 
 	flag.Parse()
@@ -36,7 +37,7 @@ func Start() {
 		explorer.Start(*port)
 	case "both":
 		go rest.Start(*port)
-		explorer.Start(*port+1000)
+		explorer.Start(*port - 1000)
 	default:
 		usage()
 	}

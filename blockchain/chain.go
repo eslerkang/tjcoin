@@ -1,8 +1,6 @@
 package blockchain
 
 import (
-	"bytes"
-	"encoding/gob"
 	"fmt"
 	"sync"
 
@@ -18,11 +16,6 @@ type blockchain struct {
 var b *blockchain
 var once sync.Once
 
-func (b *blockchain) restore(data []byte) {
-	decoder := gob.NewDecoder(bytes.NewReader(data))
-	utils.HandleError(decoder.Decode(b))
-}
-
 func (b *blockchain) persist() {
 	db.SaveInBucket(db.DATA_BUCKET, db.CHECKPOINT, utils.ToBytes(b))
 }
@@ -30,27 +23,39 @@ func (b *blockchain) persist() {
 func (b *blockchain) AddBlock(data string) {
 	block := createBlock(data)
 	b.NewestHash = block.Hash
-	b.Height = block.Height + 1
+	b.Height = block.Height
 	b.persist()
+}
+
+func (b *blockchain) Blocks() []*Block {
+	hashCursor := b.NewestHash
+	var blocks []*Block
+	for {
+		block, _ := FindBlock(hashCursor)
+		blocks = append(blocks, block)
+		if block.PrevHash != "" {
+			hashCursor = block.PrevHash
+		} else {
+			break
+		}
+	}
+	return blocks
 }
 
 func BlockChain() *blockchain {
 	if b == nil {
 		once.Do(func() {
 			b = &blockchain{"", 0}
-			fmt.Printf("NewestHash: %s\nHeight: %d", b.NewestHash, b.Height)
 			// search for checkpoint on the db
 			checkpoint := db.CheckPoint()
 			if checkpoint == nil {
 				b.AddBlock("Genesis Block")
 			} else {
 				// restore b from bytes
-				fmt.Println("Restoring")
-				b.restore(checkpoint)
-
-				fmt.Printf("NewestHash: %s\nHeight: %d", b.NewestHash, b.Height)
+				utils.FromBytes(b, checkpoint)
 			}
 		})
 	}
+	fmt.Println(b.NewestHash)
 	return b
 }

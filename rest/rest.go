@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/eslerkang/tjcoin/blockchain"
 	"github.com/eslerkang/tjcoin/utils"
@@ -17,10 +16,10 @@ var port string
 type url string
 
 type urlDescription struct {
-	URL url `json:"url"`
-	Method string `json:"method"`
+	URL         url    `json:"url"`
+	Method      string `json:"method"`
 	Description string `json:"description"`
-	Payload string `json:"payload,omitempty"`
+	Payload     string `json:"payload,omitempty"`
 }
 
 type addBlockBody struct {
@@ -33,26 +32,26 @@ func (u url) MarshalText() ([]byte, error) {
 }
 
 func documentation(rw http.ResponseWriter, r *http.Request) {
-	data := []urlDescription {
+	data := []urlDescription{
 		{
-			URL: url("/"),
-			Method: "GET",
+			URL:         url("/"),
+			Method:      "GET",
 			Description: "See Documentation",
 		},
 		{
-			URL: url("/blocks"),
-			Method: "GET",
+			URL:         url("/blocks"),
+			Method:      "GET",
 			Description: "GET All Block",
 		},
 		{
-			URL: url("/blocks"),
-			Method: "POST",
+			URL:         url("/blocks"),
+			Method:      "POST",
 			Description: "Add A Block",
-			Payload: "data:string",
+			Payload:     "data:string",
 		},
 		{
-			URL: url("/blocks/{height}"),
-			Method: "GET",
+			URL:         url("/blocks/{hash}"),
+			Method:      "GET",
 			Description: "See A Block",
 		},
 	}
@@ -62,20 +61,20 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 func blocks(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		json.NewEncoder(rw).Encode(blockchain.GetBlockChain().AllBlocks())
+		json.NewEncoder(rw).Encode(blockchain.BlockChain().Blocks())
 	case "POST":
 		var addBlockBody addBlockBody
 		utils.HandleError(json.NewDecoder(r.Body).Decode(&addBlockBody))
-		blockchain.GetBlockChain().AddBlock(addBlockBody.Data)
-		rw.WriteHeader(http.StatusCreated)	
+		blockchain.BlockChain().AddBlock(addBlockBody.Data)
+		rw.WriteHeader(http.StatusCreated)
 	}
 }
 
 func block(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	id, err := strconv.Atoi(vars["height"])
+	hash := vars["hash"]
+	block, err := blockchain.FindBlock(hash)
 	utils.HandleError(err)
-	block := blockchain.GetBlockChain().GetBlock(id)
 	json.NewEncoder(rw).Encode(block)
 }
 
@@ -91,7 +90,7 @@ func Start(aPort int) {
 	handler.Use(jsonContentTypeMiddleware)
 	handler.HandleFunc("/", documentation).Methods("GET")
 	handler.HandleFunc("/blocks", blocks).Methods("GET", "POST")
-	handler.HandleFunc("/blocks/{height:[0-9]+}", block).Methods("GET")
+	handler.HandleFunc("/blocks/{hash:[a-f0-9]+}", block).Methods("GET")
 	fmt.Printf("Listening on http://localhost%s\n", port)
-	log.Fatal(http.ListenAndServe(port, handler))	
+	log.Fatal(http.ListenAndServe(port, handler))
 }
