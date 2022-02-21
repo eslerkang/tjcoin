@@ -10,21 +10,22 @@ var db *bolt.DB
 type Bucket string
 
 const (
-	dbName       = "blockchain.db"
-	Databucket   = Bucket("data")
-	BlocksBucket = Bucket("blocks")
+	DB_NAME      = "blockchain.db"
+	DATA_BUCKET  = Bucket("data")
+	BLOCK_BUCKET = Bucket("blocks")
+	CHECKPOINT   = "checkpoint"
 )
 
 func DB() *bolt.DB {
 	if db == nil {
 		// initialize db
-		dbPointer, err := bolt.Open(dbName, 0600, nil)
+		dbPointer, err := bolt.Open(DB_NAME, 0600, nil)
 		utils.HandleError(err)
 		db = dbPointer
 		err = db.Update(func(t *bolt.Tx) error {
-			_, err := t.CreateBucketIfNotExists([]byte(Databucket))
+			_, err := t.CreateBucketIfNotExists([]byte(DATA_BUCKET))
 			utils.HandleError(err)
-			_, err = t.CreateBucketIfNotExists([]byte(BlocksBucket))
+			_, err = t.CreateBucketIfNotExists([]byte(BLOCK_BUCKET))
 			utils.HandleError(err)
 			return nil
 		})
@@ -40,4 +41,15 @@ func SaveInBucket(bucketName Bucket, key string, data []byte) {
 		return err
 	})
 	utils.HandleError(err)
+}
+
+func CheckPoint() []byte {
+	var data []byte
+	err := DB().View(func(t *bolt.Tx) error {
+		bucket := t.Bucket([]byte(DATA_BUCKET))
+		data = bucket.Get([]byte(CHECKPOINT))
+		return nil
+	})
+	utils.HandleError(err)
+	return data
 }

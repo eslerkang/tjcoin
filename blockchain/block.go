@@ -16,7 +16,7 @@ type Block struct {
 }
 
 func (b *Block) persist() {
-	db.SaveInBucket(db.BlocksBucket, b.Hash, utils.ToBytes(b))
+	db.SaveInBucket(db.BLOCK_BUCKET, b.Hash, utils.ToBytes(b))
 }
 
 func createBlock(data string) *Block {
