@@ -1,9 +1,7 @@
 package blockchain
 
 import (
-	"bytes"
 	"crypto/sha256"
-	"encoding/gob"
 	"fmt"
 
 	"github.com/eslerkang/tjcoin/db"
@@ -17,15 +15,8 @@ type Block struct {
 	Height   int    `json:"height"`
 }
 
-func (b *Block) toBytes() []byte {
-	var blockBuffer bytes.Buffer
-	encoder := gob.NewEncoder(&blockBuffer)
-	utils.HandleError(encoder.Encode(b))
-	return blockBuffer.Bytes()
-}
-
 func (b *Block) persist() {
-	db.SaveInBucket(db.BlocksBucket, b.Hash, b.toBytes())
+	db.SaveInBucket(db.BlocksBucket, b.Hash, utils.ToBytes(b))
 }
 
 func createBlock(data string) *Block {
@@ -33,7 +24,7 @@ func createBlock(data string) *Block {
 		Data:     data,
 		Hash:     "",
 		PrevHash: BlockChain().NewestHash,
-		Height:   BlockChain().Height,
+		Height:   BlockChain().Height + 1,
 	}
 
 	payload := block.Data + block.PrevHash + fmt.Sprint(block.Height)

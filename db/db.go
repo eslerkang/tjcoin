@@ -1,8 +1,6 @@
 package db
 
 import (
-	"fmt"
-
 	"github.com/boltdb/bolt"
 	"github.com/eslerkang/tjcoin/utils"
 )
@@ -36,7 +34,6 @@ func DB() *bolt.DB {
 }
 
 func SaveInBucket(bucketName Bucket, key string, data []byte) {
-	fmt.Printf("Saving %s\nData: %b\n", key, data)
 	err := DB().Update(func(t *bolt.Tx) error {
 		bucket := t.Bucket([]byte(bucketName))
 		err := bucket.Put([]byte(key), data)
